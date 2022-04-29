@@ -78,6 +78,10 @@ def find_acc(r):
     m1 = const.M_sun
     m2 = const.M_earth
 
+	#TODO: r1 and m1 are referenced here and are global variables. 
+	#You should put this into a class and have them as member or class variables
+	#That way other code doesn't accidentally modify them unintentionally!
+
     a1 = (- const.G*m1*(r-r1)/(np.linalg.norm(r-r1)**3)).to(u.km/u.s**2)
     a2 = (- const.G*m2*(r-r2)/(np.linalg.norm(r-r2)**3)).to(u.km/u.s**2)
     a_s = (a1 + a2)
@@ -109,12 +113,17 @@ def diff_lateral_acc(rt, rs):
     # find acceleration of telescope and starshade
     a_t = find_acc(rt)
     a_s = find_acc(rs)
+	#TODO: store a_s-a_t and rs-rt so that they don't need to be reomputed multiple times
 
     # calculate axial differential acceleration
     axial_diff_acc = (np.dot((a_s-a_t),(rs-rt))*(rs-rt))/(np.linalg.norm(rs-rt))**2
 
     # calculate lateral differential acceleration
     lateral_diff_acc = (a_s-a_t) - axial_diff_acc
+    print("compare")
+    print((a_s-a_t))	
+    print(axial_diff_acc)
+    print(np.linalg.norm(rs-rt))
 
     return lateral_diff_acc
 

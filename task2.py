@@ -96,6 +96,10 @@ def to_cartesian(rho,theta,phi):
 
     Returns cartesian coordinates using the arguments rho, theta, and phi.
     """
+	#TODO: remember these take in radians and not degrees!
+    phi = phi * np.pi/180.
+    theta = theta * np.pi/180.
+
 
     x = rho*np.sin(phi)*np.cos(theta)
     y = rho*np.sin(phi)*np.sin(theta)
@@ -126,13 +130,23 @@ def diff_lateral_acc_values(n,theta_values, phi_values):
         for i in range(len(lst)):
             R = np.sqrt((np.cos(theta_values[i])*np.cos(phi_values[n]))**2+(np.cos(theta_values[i])\
                 *np.sin(phi_values[n]))**2+(np.sin(theta_values[i]))**2)
+            #print("r is")
+            #print(R)
+            R=.00001
+			#here you're just always setting R to be equal to 1
+			#take in R as an input to the function
 
             # convert to cartesian coordinates
             r_rel = to_cartesian(R,theta_values[i],phi_values[n])
 
             # calculate differential lateral acceleration values
-            delta_a_l = acc.diff_lateral_acc(np.array([0,0,0])* u.au,r_rel* u.au)
+			#TODO: using a point somewhere around L2 (also make this an argument to the function)
+			#TODO: your function takes in r_s, r_t. It does not take in r_s, r_rel
+            r_t = np.array([1.01,.001,.001])* u.au
+            delta_a_l = acc.diff_lateral_acc(r_t,r_t+r_rel* u.au)
             delta_a_l = np.linalg.norm(delta_a_l.value)
+
+            print(delta_a_l)
 
             # append value to list
             lst[n].append(delta_a_l)
@@ -141,16 +155,24 @@ def diff_lateral_acc_values(n,theta_values, phi_values):
     return lst
 
 # create values for theta and phi
-thetavalues = np.arange(0, 180, 10)
-phivalues = np.arange(-90,90,10)
+#TODO: have to go from 0 to 360 for whole sphere theta values
+thetavalues = np.arange(0, 360, 5)
+phivalues = np.arange(-90,90,2.5)
+
+print("lengths")
+print(len(thetavalues))
+print(len(phivalues))
 
 # create 2D grid
 [theta, phi] = np.meshgrid(thetavalues, phivalues)
+print(theta)
+print(phi)
 fig, ax = plt.subplots(1,1) # subplot, 1 row and 1 column
 
-delta_a_l = np.array(diff_lateral_acc_values(18, thetavalues, phivalues))
+delta_a_l = np.array(diff_lateral_acc_values(72, thetavalues, phivalues))
 
 # pdb.set_trace()
+#TODO: add a legend to go with this. Also title, and axes labels.
 plt.contourf(theta, phi, delta_a_l,10)
 
 # plt.plot(a_s, a_t, marker='.', color='k', linestyle='none')
@@ -162,3 +184,6 @@ plt.contourf(theta, phi, delta_a_l,10)
 plt.show()
 # plt.savefig("plot")
 # pdb.set_trace()
+
+
+#TODO: Go back and delete the print statements I put in to debug. 
