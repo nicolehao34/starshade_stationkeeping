@@ -3,6 +3,31 @@ from astropy import constants as const
 import astropy
 import numpy as np
 
+class quantity:
+    """
+    This class stores variables such as Sun mass m1 and position vector
+    of the sun r1.
+    """
+    m1 = const.M_sun
+    m2 = const.M_earth
+    # Assuming the Earth and Sun move on circular orbits around their
+    # barycenter with a constant distance of 1AU between each other,
+    # find the distance between the barycenter of the Earth Sun system and the Sun
+
+    # Sun is at 0, Earth is 1 AU away
+    coord1 = np.array([0,0,0])* u.au
+    coord2 = np.array([1,0,0]) * u.au
+
+    COM = ((m1*coord1+m2*coord2)/(m1+m2))
+
+    # If the barycenter is at the origin, and the Sun is offset
+    # in the negatuve x direction from the barycenter
+    # r1, position vector of the Sun in COM frame
+    r1 = coord1 - COM
+
+    # r2, position vector of the Earth in COM frame
+    r2 = coord2 - COM
+
 # Sun mass
 print(const.M_sun)
 # Earth mass
@@ -25,37 +50,13 @@ print(q1)
 print(q1.value)
 print(q1.unit)
 
-# Assuming the Earth and Sun move on circular orbits around their
-# barycenter with a constant distance of 1AU between each other,
-# find the distance between the barycenter of the Earth Sun system and the Sun
-m1 = const.M_sun
-m2 = const.M_earth
-
-# Sun is at 0, Earth is 1 AU away
-coord1 = np.array([0,0,0])* u.au
-coord2 = np.array([1,0,0]) * u.au
-
-COM = ((m1*coord1+m2*coord2)/(m1+m2))
-
-print('coordinates of the barycenter: ' + repr(COM))
-
-# If the barycenter is at the origin, and the Sun is offset
-# in the negatuve x direction from the barycenter
-# r1, position vector of the Sun in COM fram
-r1 = coord1 - COM
-print('r1 is' + repr(r1))
-
-# r2, position vector of the Earth in COM frame
-r2 = coord2 - COM
-print('r2 is' + repr(r2))
-
 # Write out the expression for the inertial acceleration of a satellite at r due
 # to the inverse square law gravity from the Sun and Earth at r1 and r2.
 # assuming r is a known vector of the satellite
 
 r = np.array([0,0,0])
-a1 = (- const.G*m1*(r-r1)/(np.linalg.norm(r-r1))**3).to(u.km/u.s**2)
-a2 = (- const.G*m2*(r-r2)/(np.linalg.norm(r-r2))**3).to(u.km/u.s**2)
+a1 = (- const.G*quantity.m1*(r-quantity.r1)/(np.linalg.norm(r-quantity.r1))**3).to(u.km/u.s**2)
+a2 = (- const.G*quantity.m2*(r-quantity.r2)/(np.linalg.norm(r-quantity.r2))**3).to(u.km/u.s**2)
 
 print("a1 is" + repr(a1))
 print(repr(type(a1)))
@@ -78,12 +79,12 @@ def find_acc(r):
     m1 = const.M_sun
     m2 = const.M_earth
 
-	#TODO: r1 and m1 are referenced here and are global variables. 
+	#TODO: r1 and m1 are referenced here and are global variables.
 	#You should put this into a class and have them as member or class variables
 	#That way other code doesn't accidentally modify them unintentionally!
 
-    a1 = (- const.G*m1*(r-r1)/(np.linalg.norm(r-r1)**3)).to(u.km/u.s**2)
-    a2 = (- const.G*m2*(r-r2)/(np.linalg.norm(r-r2)**3)).to(u.km/u.s**2)
+    a1 = (- const.G*quantity.m1*(r-quantity.r1)/(np.linalg.norm(r-quantity.r1)**3)).to(u.km/u.s**2)
+    a2 = (- const.G*quantity.m2*(r-quantity.r2)/(np.linalg.norm(r-quantity.r2)**3)).to(u.km/u.s**2)
     a_s = (a1 + a2)
 
     return a_s
@@ -106,24 +107,26 @@ def diff_lateral_acc(rt, rs):
     This function takes the position of the telescope rt, a relative position
     vector for the starshade relaitve to the telescope rs.
     Returns differential lateral accelration.
+
     Precondition: rt, rs are both astropy quantities with units.
     """
-    # assert type(rt) == np.ndarray and type(rs) == np.ndarray # check
-
     # find acceleration of telescope and starshade
     a_t = find_acc(rt)
     a_s = find_acc(rs)
-	#TODO: store a_s-a_t and rs-rt so that they don't need to be reomputed multiple times
+
+    #TODO: store a_s-a_t and rs-rt so that they don't need to be reomputed multiple times
+    r_diff = rs - rt
+    a_diff = a_s - a_t
 
     # calculate axial differential acceleration
-    axial_diff_acc = (np.dot((a_s-a_t),(rs-rt))*(rs-rt))/(np.linalg.norm(rs-rt))**2
+    axial_diff_acc = (np.dot((a_diff),(r_diff))*(r_diff))/(np.linalg.norm(r_diff))**2
 
     # calculate lateral differential acceleration
-    lateral_diff_acc = (a_s-a_t) - axial_diff_acc
-    print("compare")
-    print((a_s-a_t))	
-    print(axial_diff_acc)
-    print(np.linalg.norm(rs-rt))
+    lateral_diff_acc = (a_diff) - axial_diff_acc
+    # print("compare")
+    # print((a_diff))S
+    # print(axial_diff_acc)
+    # print(np.linalg.norm(r_diff))
 
     return lateral_diff_acc
 
