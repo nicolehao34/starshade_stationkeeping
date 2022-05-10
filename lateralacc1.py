@@ -123,10 +123,6 @@ def diff_lateral_acc(rt, rs):
 
     # calculate lateral differential acceleration
     lateral_diff_acc = (a_diff) - axial_diff_acc
-    # print("compare")
-    # print((a_diff))S
-    # print(axial_diff_acc)
-    # print(np.linalg.norm(r_diff))
 
     return lateral_diff_acc
 
